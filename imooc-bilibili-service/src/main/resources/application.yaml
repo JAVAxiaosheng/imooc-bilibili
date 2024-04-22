@@ -1,0 +1,15 @@
+spring:
+  profiles:
+    active: test
+  devtools:
+    restart:
+      enabled: true
+server:
+  port: 8060
+
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.imooc.bilibili.domain
