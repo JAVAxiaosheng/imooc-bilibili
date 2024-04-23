@@ -1,6 +1,7 @@
 package com.imooc.bilibili.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import io.swagger.annotations.ApiModel;
@@ -32,4 +33,8 @@ public class UserInfo {
     private Date createTime;
     @ApiModelProperty("更新时间")
     private Date updateTime;
+
+    @TableField(exist = false)
+    @ApiModelProperty("关注状态")
+    private Boolean followed;
 }

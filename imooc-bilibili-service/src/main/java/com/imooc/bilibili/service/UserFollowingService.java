@@ -11,4 +11,7 @@ public interface UserFollowingService extends IService<UserFollowing> {
     void addUserFollowings(UserFollowing userFollowing);
 
     List<FollowingGroup> getUserFollowings(Long userId);
+
+    // 获取用户粉丝
+    List<UserFollowing> getUserFans(Long userId);
 }

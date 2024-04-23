@@ -34,5 +34,6 @@ public class FollowingGroup {
     private Date updateTime;
 
     @TableField(exist = false)
-    private List<UserInfo> followingInfoList;
+    @ApiModelProperty("userInfoList")
+    private List<UserInfo> followingUserInfoInfoList;
 }

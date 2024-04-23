@@ -64,6 +64,7 @@ public class UserFollowingServiceImpl extends ServiceImpl<UserFollowingMapper, U
         userFollowingMapper.insert(userFollowing);
     }
 
+    // 获取用户关注列表
     @Override
     public List<FollowingGroup> getUserFollowings(Long userId) {
         LambdaQueryWrapper<UserFollowing> queryWrapper = new LambdaQueryWrapper<UserFollowing>()
@@ -90,6 +91,51 @@ public class UserFollowingServiceImpl extends ServiceImpl<UserFollowingMapper, U
         List<FollowingGroup> groupList = followingGroupService.list(groupQueryWrapper);
         FollowingGroup allGroup = new FollowingGroup();
         allGroup.setName(UserConstant.USER_FOLLOWING_GROUP_ALL_NAME);
-        return null;
+        allGroup.setFollowingUserInfoInfoList(userInfoList);
+        List<FollowingGroup> result = new ArrayList<>();
+        result.add(allGroup);
+        for (FollowingGroup group : groupList) {
+            List<UserInfo> infoList = new ArrayList<>();
+            for (UserFollowing userFollowing : list) {
+                if (group.getId().equals(userFollowing.getGroupId())) {
+                    infoList.add(userFollowing.getUserInfo());
+                }
+            }
+            group.setFollowingUserInfoInfoList(infoList);
+            result.add(group);
+        }
+        return result;
+    }
+
+    // 获取用户粉丝
+    @Override
+    public List<UserFollowing> getUserFans(Long userId) {
+        LambdaQueryWrapper<UserFollowing> queryWrapper = new LambdaQueryWrapper<UserFollowing>()
+                .eq(UserFollowing::getFollowingId, userId);
+        List<UserFollowing> fanList = userFollowingMapper.selectList(queryWrapper);
+        Set<Long> fanIdSet = fanList.stream().map(UserFollowing::getUserId).collect(Collectors.toSet());
+        List<UserInfo> userInfoList = new ArrayList<>();
+        if (fanIdSet.size() > 0) {
+            LambdaQueryWrapper<UserInfo> userInfoQueryWrapper = new LambdaQueryWrapper<UserInfo>()
+                    .in(UserInfo::getUserId, fanIdSet);
+            userInfoList = userInfoService.list(userInfoQueryWrapper);
+        }
+        LambdaQueryWrapper<UserFollowing> userFollowingQueryWrapper = new LambdaQueryWrapper<UserFollowing>()
+                .eq(UserFollowing::getUserId, userId);
+        List<UserFollowing> followingList = userFollowingMapper.selectList(userFollowingQueryWrapper);
+        for (UserFollowing fan : fanList) {
+            for (UserInfo userInfo : userInfoList) {
+                if (fan.getUserId().equals(userInfo.getUserId())) {
+                    userInfo.setFollowed(false);
+                    fan.setUserInfo(userInfo);
+                }
+            }
+            for (UserFollowing userFollowing : followingList) {
+                if (userFollowing.getFollowingId().equals(fan.getUserId())) {
+                    fan.getUserInfo().setFollowed(true);
+                }
+            }
+        }
+        return fanList;
     }
 }
