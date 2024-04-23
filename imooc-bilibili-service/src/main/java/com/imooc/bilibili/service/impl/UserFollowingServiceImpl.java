@@ -138,4 +138,35 @@ public class UserFollowingServiceImpl extends ServiceImpl<UserFollowingMapper, U
         }
         return fanList;
     }
+
+    @Override
+    public Long addFollowingGroup(FollowingGroup followingGroup) {
+        followingGroup.setCreateTime(new Date());
+        followingGroup.setType(UserConstant.USER_FOLLOWING_GROUP_TYPE_USER);
+        followingGroupService.save(followingGroup);
+        return followingGroup.getId();
+    }
+
+    @Override
+    public List<FollowingGroup> getFollowingGroups(Long userId) {
+        LambdaQueryWrapper<FollowingGroup> queryWrapper = new LambdaQueryWrapper<FollowingGroup>()
+                .eq(FollowingGroup::getUserId, userId);
+        return followingGroupService.list(queryWrapper);
+    }
+
+    @Override
+    public List<UserInfo> checkFollowingStatus(List<UserInfo> userInfoList, Long userId) {
+        LambdaQueryWrapper<UserFollowing> queryWrapper = new LambdaQueryWrapper<UserFollowing>()
+                .eq(UserFollowing::getUserId, userId);
+        List<UserFollowing> userFollowingList = userFollowingMapper.selectList(queryWrapper);
+        for (UserInfo userInfo : userInfoList) {
+            userInfo.setFollowed(false);
+            for (UserFollowing userFollowing : userFollowingList) {
+                if (userFollowing.getFollowingId().equals(userInfo.getUserId())) {
+                    userInfo.setFollowed(true);
+                }
+            }
+        }
+        return userInfoList;
+    }
 }

@@ -48,4 +48,21 @@ public class UserFollowingController {
         return new JsonResponse<>(result);
     }
 
+    @PostMapping("add/following/group")
+    @ApiOperation(value = "新建用户分组", httpMethod = "POST")
+    public JsonResponse<Long> addFollowingGroup(@RequestBody FollowingGroup followingGroup) {
+        Long userId = userSupport.getCurrentUserId();
+        followingGroup.setUserId(userId);
+        Long groupId = userFollowingService.addFollowingGroup(followingGroup);
+        return new JsonResponse<>(groupId);
+    }
+
+    @GetMapping("/get/following/groups")
+    @ApiOperation(value = "获取用户关注分组", httpMethod = "GET")
+    public JsonResponse<List<FollowingGroup>> getFollowingGroups() {
+        Long userId = userSupport.getCurrentUserId();
+        List<FollowingGroup> result = userFollowingService.getFollowingGroups(userId);
+        return new JsonResponse<>(result);
+    }
+
 }

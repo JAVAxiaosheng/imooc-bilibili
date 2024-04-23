@@ -1,9 +1,11 @@
 package com.imooc.bilibili.service.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.imooc.bilibili.constant.UserConstant;
+import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.User;
 import com.imooc.bilibili.domain.UserInfo;
 import com.imooc.bilibili.exception.ConditionException;
@@ -17,7 +19,9 @@ import com.mysql.cj.util.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 
 @Service
@@ -135,5 +139,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .set(UserInfo::getUpdateTime, userInfo.getUpdateTime())
                 .eq(UserInfo::getUserId, userInfo.getUserId());
         userInfoMapper.update(userInfo, updateWrapper);
+    }
+
+    @Override
+    public PageResult<UserInfo> getUserInfosOnPage(JSONObject params) {
+        Integer pageNum = params.getInteger("pageNum");
+        Integer pageSize = params.getInteger("pageSize");
+        params.put("start", (pageNum - 1) * pageSize);
+        params.put("limit", pageSize);
+        Integer total = userMapper.getCountUserInfosOnPage(params);
+        List<UserInfo> userInfoList = new ArrayList<>();
+        if (total > 0) {
+            userInfoList = userMapper.getUserInfosOnPage(params);
+        }
+        return new PageResult<>(total, userInfoList);
     }
 }

@@ -1,8 +1,11 @@
 package com.imooc.bilibili.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.imooc.bilibili.domain.JsonResponse;
+import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.User;
 import com.imooc.bilibili.domain.UserInfo;
+import com.imooc.bilibili.service.UserFollowingService;
 import com.imooc.bilibili.service.UserService;
 import com.imooc.bilibili.support.UserSupport;
 import com.imooc.bilibili.util.RSAUtil;
@@ -12,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @RestController
 @RequestMapping("/user")
@@ -19,6 +23,9 @@ import javax.annotation.Resource;
 public class UserController {
     @Resource
     private UserService userService;
+
+    @Resource
+    private UserFollowingService userFollowingService;
 
     @Resource
     private UserSupport userSupport;
@@ -68,6 +75,28 @@ public class UserController {
         userInfo.setUserId(userId);
         userService.updateUserInfos(userInfo);
         return JsonResponse.success();
+    }
+
+    @GetMapping("/page/infos")
+    @ApiOperation(value = "分页获取用户信息", httpMethod = "GET")
+    public JsonResponse<PageResult<UserInfo>> getUserInfosOnPage(
+            @RequestParam(value = "pageNum", defaultValue = "1") Integer pageNum,
+            @RequestParam(value = "pageSize", defaultValue = "10") Integer pageSize,
+            @RequestParam(value = "nick", required = false) String nick
+    ) {
+        Long userId = userSupport.getCurrentUserId();
+        JSONObject params = new JSONObject();
+        params.put("pageNum", pageNum);
+        params.put("pageSize", pageSize);
+        params.put("nick", nick);
+        params.put("userId", userId);
+        PageResult<UserInfo> result = userService.getUserInfosOnPage(params);
+        if (result.getTotal() > 0) {
+            // 检查用户的关注状态
+            List<UserInfo> userInfoList = userFollowingService.checkFollowingStatus(result.getList(), userId);
+            result.setList(userInfoList);
+        }
+        return new JsonResponse<>(result);
     }
 
 }
