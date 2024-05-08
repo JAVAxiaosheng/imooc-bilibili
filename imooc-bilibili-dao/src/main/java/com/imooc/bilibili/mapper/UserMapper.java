@@ -1,6 +1,6 @@
 package com.imooc.bilibili.mapper;
 
-import com.alibaba.fastjson.JSONObject;
+
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.imooc.bilibili.domain.User;
 import com.imooc.bilibili.domain.UserInfo;
