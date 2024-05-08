@@ -24,7 +24,7 @@ public class AuthElementOperation {
     private String elementCode;
 
     @ApiModelProperty("页面元素类型")
-    private String elementType;
+    private String operationType;
 
     @ApiModelProperty("创建时间")
     private Date createTime;

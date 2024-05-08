@@ -2,5 +2,26 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.imooc.bilibili.mapper.AuthRoleMenuMapper">
+    <resultMap id="AuthRoleMenuResultMap" type="AuthRoleMenu">
+        <id column="id" property="id"/>
+        <id column="role_id" property="roleId"/>
+        <id column="menu_id" property="menuId"/>
+        <association property="authMenu" javaType="AuthMenu">
+            <id column="name" property="name"/>
+            <id column="code" property="code"/>
+        </association>
+    </resultMap>
 
+    <select id="getAuthRoleMenusByRoleIds" parameterType="java.util.Set"
+            resultMap="AuthRoleMenuResultMap">
+        SELECT arm.*,
+        am.`name`,
+        am.`code`
+        FROM t_auth_role_menu arm
+        LEFT JOIN t_auth_menu am ON arm.menu_id = am.id
+        WHERE arm.role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" close=")" separator=",">
+            #{roleId}
+        </foreach>
+    </select>
 </mapper>

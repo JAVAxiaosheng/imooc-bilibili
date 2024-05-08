@@ -18,7 +18,7 @@ public class AuthMenu {
     private Long id;
 
     @ApiModelProperty("菜单项目名称")
-    private Long name;
+    private String name;
 
     @ApiModelProperty("唯一编码")
     private String code;

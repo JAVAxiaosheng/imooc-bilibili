@@ -28,5 +28,11 @@ public class UserRole {
     private Date createTime;
 
     @TableField(exist = false)
-    private AuthRole authRole;
+    @ApiModelProperty("角色名称")
+    private String roleName;
+
+    @TableField(exist = false)
+    @ApiModelProperty("角色唯一编码")
+    private String roleCode;
+
 }

@@ -7,9 +7,16 @@ import com.imooc.bilibili.service.UserRoleService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class UserRoleServiceImpl extends ServiceImpl<UserRoleMapper, UserRole> implements UserRoleService {
     @Resource
     private UserRoleMapper userRoleMapper;
+
+
+    @Override
+    public List<UserRole> getUserRolesByUserId(Long userId) {
+        return userRoleMapper.getUserRolesByUserId(userId);
+    }
 }
