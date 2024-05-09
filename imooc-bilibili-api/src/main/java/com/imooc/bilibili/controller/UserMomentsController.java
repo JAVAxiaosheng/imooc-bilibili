@@ -1,5 +1,8 @@
 package com.imooc.bilibili.controller;
 
+import com.imooc.bilibili.annotation.ApiLimitedRole;
+import com.imooc.bilibili.annotation.DataLimited;
+import com.imooc.bilibili.constant.AuthRoleConstant;
 import com.imooc.bilibili.domain.JsonResponse;
 import com.imooc.bilibili.domain.UserMoments;
 import com.imooc.bilibili.service.UserMomentsService;
@@ -22,6 +25,8 @@ public class UserMomentsController {
     @Resource
     private UserSupport userSupport;
 
+    @ApiLimitedRole(limitedRoleCodeList = {AuthRoleConstant.ROLE_CODE_LV0})
+    @DataLimited
     @PostMapping("/add/moments")
     @ApiOperation(value = "用户添加动态", httpMethod = "POST")
     public JsonResponse<String> addUserMoments(@RequestBody UserMoments userMoments) throws Exception {

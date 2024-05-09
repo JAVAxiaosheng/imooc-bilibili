@@ -11,6 +11,7 @@ import com.imooc.bilibili.domain.UserInfo;
 import com.imooc.bilibili.exception.ConditionException;
 import com.imooc.bilibili.mapper.UserInfoMapper;
 import com.imooc.bilibili.mapper.UserMapper;
+import com.imooc.bilibili.service.UserAuthService;
 import com.imooc.bilibili.service.UserService;
 import com.imooc.bilibili.util.MD5Util;
 import com.imooc.bilibili.util.RSAUtil;
@@ -31,6 +32,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Resource
     private UserInfoMapper userInfoMapper;
+
+    @Resource
+    private UserAuthService userAuthService;
 
     @Override
     public void addUser(User user) {
@@ -65,6 +69,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         userInfo.setCreateTime(now);
         userInfo.setUpdateTime(now);
         userInfoMapper.insert(userInfo);
+        // 添加默认权限角色
+        userAuthService.addUserDefaultRole(user.getId());
     }
 
     @Override

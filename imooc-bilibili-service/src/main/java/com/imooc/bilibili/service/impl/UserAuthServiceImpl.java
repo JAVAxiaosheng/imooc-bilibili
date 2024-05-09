@@ -1,9 +1,7 @@
 package com.imooc.bilibili.service.impl;
 
-import com.imooc.bilibili.domain.auth.AuthRoleElementOperation;
-import com.imooc.bilibili.domain.auth.AuthRoleMenu;
-import com.imooc.bilibili.domain.auth.UserAuthorities;
-import com.imooc.bilibili.domain.auth.UserRole;
+import com.imooc.bilibili.constant.AuthRoleConstant;
+import com.imooc.bilibili.domain.auth.*;
 import com.imooc.bilibili.service.AuthRoleService;
 import com.imooc.bilibili.service.UserAuthService;
 import com.imooc.bilibili.service.UserRoleService;
@@ -33,5 +31,14 @@ public class UserAuthServiceImpl implements UserAuthService {
         userAuthorities.setRoleElementOperationList(roleElementOperationList);
         userAuthorities.setRoleMenuList(authRoleMenuList);
         return userAuthorities;
+    }
+
+    @Override
+    public void addUserDefaultRole(Long id) {
+        UserRole userRole = new UserRole();
+        AuthRole role = authRoleService.getRoleByCode(AuthRoleConstant.ROLE_CODE_LV0);
+        userRole.setUserId(id);
+        userRole.setRoleId(role.getId());
+        userRoleService.addUserRole(userRole);
     }
 }

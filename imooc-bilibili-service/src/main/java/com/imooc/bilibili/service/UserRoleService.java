@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface UserRoleService extends IService<UserRole> {
     List<UserRole> getUserRolesByUserId(Long userId);
+
+    void addUserRole(UserRole userRole);
 }

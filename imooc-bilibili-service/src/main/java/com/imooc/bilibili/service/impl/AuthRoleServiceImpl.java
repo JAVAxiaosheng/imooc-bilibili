@@ -1,5 +1,6 @@
 package com.imooc.bilibili.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.imooc.bilibili.domain.auth.AuthRole;
 import com.imooc.bilibili.domain.auth.AuthRoleElementOperation;
@@ -34,5 +35,12 @@ public class AuthRoleServiceImpl extends ServiceImpl<AuthRoleMapper, AuthRole> i
     @Override
     public List<AuthRoleMenu> getAuthRoleMenusByRoleIds(Set<Long> roleIds) {
         return authRoleMenuService.getAuthRoleMenusByRoleIds(roleIds);
+    }
+
+    @Override
+    public AuthRole getRoleByCode(String roleCode) {
+        LambdaQueryWrapper<AuthRole> queryWrapper = new LambdaQueryWrapper<AuthRole>()
+                .eq(AuthRole::getCode, roleCode);
+        return authRoleMapper.selectOne(queryWrapper);
     }
 }

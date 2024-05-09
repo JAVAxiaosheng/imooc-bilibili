@@ -12,4 +12,6 @@ public interface AuthRoleService extends IService<AuthRole> {
     List<AuthRoleElementOperation> getAuthRoleElementOperationsByRoleIds(Set<Long> roleIds);
 
     List<AuthRoleMenu> getAuthRoleMenusByRoleIds(Set<Long> roleIds);
+
+    AuthRole getRoleByCode(String roleCode);
 }

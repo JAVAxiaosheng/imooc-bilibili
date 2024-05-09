@@ -1,5 +1,7 @@
 package com.imooc.bilibili.controller;
 
+import com.imooc.bilibili.annotation.ApiLimitedRole;
+import com.imooc.bilibili.constant.AuthRoleConstant;
 import com.imooc.bilibili.domain.JsonResponse;
 import com.imooc.bilibili.domain.auth.UserAuthorities;
 import com.imooc.bilibili.service.UserAuthService;
