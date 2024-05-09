@@ -6,6 +6,8 @@ import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.User;
 import com.imooc.bilibili.domain.UserInfo;
 
+import java.util.Map;
+
 public interface UserService extends IService<User> {
     void addUser(User user);
 
@@ -18,4 +20,10 @@ public interface UserService extends IService<User> {
     void updateUserInfos(UserInfo userInfo);
 
     PageResult<UserInfo> getUserInfosOnPage(JSONObject params);
+
+    Map<String, Object> loginForDts(User user) throws Exception;
+
+    void logout(Long userId, String refreshToken);
+
+    String refreshAccessToken(String refreshToken) throws Exception;
 }

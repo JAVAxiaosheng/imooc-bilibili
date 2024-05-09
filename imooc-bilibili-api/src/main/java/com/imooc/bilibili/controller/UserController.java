@@ -15,7 +15,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/user")
@@ -98,5 +100,30 @@ public class UserController {
         }
         return new JsonResponse<>(result);
     }
+
+    @PostMapping("/double/tokens")
+    @ApiOperation(value = "双token登录验证", httpMethod = "POST")
+    public JsonResponse<Map<String, Object>> loginForDts(@RequestBody User user) throws Exception {
+        Map<String, Object> map = userService.loginForDts(user);
+        return new JsonResponse<>(map);
+    }
+
+    @DeleteMapping("delete/double/tokens")
+    @ApiOperation(value = "删除刷新token,退出登录", httpMethod = "DELETE")
+    public JsonResponse<String> logout(HttpServletRequest request) {
+        String refreshToken = request.getHeader("refreshToken");
+        Long userId = userSupport.getCurrentUserId();
+        userService.logout(userId, refreshToken);
+        return JsonResponse.success();
+    }
+
+    @PostMapping("/access/tokens")
+    @ApiOperation(value = "刷新accessToken", httpMethod = "POST")
+    public JsonResponse<String> refreshAccessToken(HttpServletRequest request) throws Exception {
+        String refreshToken = request.getHeader("refreshToken");
+        String accessToken = userService.refreshAccessToken(refreshToken);
+        return new JsonResponse<>(accessToken);
+    }
+
 
 }
