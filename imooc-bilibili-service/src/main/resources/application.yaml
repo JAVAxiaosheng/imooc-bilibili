@@ -4,6 +4,10 @@ spring:
   devtools:
     restart:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 50GB
+      max-request-size: 50GB
 server:
   port: 8060
 
