@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imooc.bilibili.mapper.VideoMapper">
+    <select id="pageCountVideos" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT
+        count(1)
+        FROM
+        t_video
+        WHERE
+        1=1
+        <if test="area != null and area != ''">
+            AND area = #{area}
+        </if>
+    </select>
+
+    <select id="pageListVideos" parameterType="java.util.Map" resultType="Video">
+        SELECT
+        *
+        FROM
+        t_video
+        WHERE
+        1=1
+        <if test="area != null and area != ''">
+            AND area = #{area}
+        </if>
+        order by id desc
+        limit #{start},#{limit}
+    </select>
+</mapper>

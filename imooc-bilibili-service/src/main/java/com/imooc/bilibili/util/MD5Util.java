@@ -1,5 +1,6 @@
 package com.imooc.bilibili.util;
 
+import cn.hutool.crypto.SecureUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
 

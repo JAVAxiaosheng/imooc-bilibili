@@ -1,6 +1,8 @@
 package com.imooc.bilibili.util;
 
 import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.util.StrUtil;
+import com.github.tobato.fastdfs.domain.fdfs.FileInfo;
 import com.github.tobato.fastdfs.domain.fdfs.MetaData;
 import com.github.tobato.fastdfs.domain.fdfs.StorePath;
 import com.github.tobato.fastdfs.service.AppendFileStorageClient;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileItemFactory;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.util.FileCopyUtils;
@@ -19,6 +22,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
 
@@ -32,6 +37,9 @@ public class FastDFSUtil {
     private static final Integer SLICE_SIZE = 1024 * 1024;
     public static final String FILE_SLICES_TEMP_PATH = "D:\\Linux\\temp\\";
     public static final String TEMP_FILE_PATH = "D:\\Linux\\";
+
+    @Value("${fdfs.http.storage-addr}")
+    private String httpStorageAddr;
 
     @Resource
     private FastFileStorageClient fastFileStorageClient;
@@ -214,5 +222,39 @@ public class FastDFSUtil {
         }
         return new CommonsMultipartFile(item);
     }
-    //下载文件
+
+    // 视频在线观看
+    public void viewVideoOnlineBySlices(HttpServletRequest request, HttpServletResponse response,
+                                        String path) throws Exception {
+        FileInfo fileInfo = fastFileStorageClient.queryFileInfo(FAST_DFS_DEFAULT_GROUP_NAME, path);
+        long fileTotalFileSize = fileInfo.getFileSize();
+        String url = httpStorageAddr + path;
+        Enumeration<String> headerNames = request.getHeaderNames();
+        Map<String, Object> headers = new HashMap<>();
+        while (headerNames.hasMoreElements()) {
+            String header = headerNames.nextElement();
+            headers.put(header, request.getHeader(header));
+        }
+        String rangeStr = request.getHeader("Range");
+        if (StrUtil.isEmptyOrUndefined(rangeStr)) {
+            rangeStr = "bytes=0-" + (fileTotalFileSize - 1);
+        }
+        String[] ranges = rangeStr.split("bytes=|-");
+        long begin = 0;
+        long end = fileTotalFileSize - 1;
+        if (ranges.length >= 2) {
+            begin = Long.parseLong(ranges[1]);
+        }
+        if (ranges.length >= 3) {
+            end = Long.parseLong(ranges[2]);
+        }
+        long slicesLen = (end - begin) + 1;
+        String contentRange = "bytes " + begin + "-" + end + "/" + fileTotalFileSize;
+        response.setHeader("Content-Range", contentRange);
+        response.setHeader("Accept-Ranges", "bytes");
+        response.setContentLength((int) slicesLen);
+        response.setHeader("Content-Type", "video/mp4");
+        response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+        HttpUtil.get(url, headers, response);
+    }
 }
