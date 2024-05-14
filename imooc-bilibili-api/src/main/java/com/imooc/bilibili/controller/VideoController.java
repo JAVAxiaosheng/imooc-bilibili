@@ -3,6 +3,8 @@ package com.imooc.bilibili.controller;
 import com.imooc.bilibili.domain.JsonResponse;
 import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.video.Video;
+import com.imooc.bilibili.domain.video.VideoCoin;
+import com.imooc.bilibili.domain.video.VideoCollection;
 import com.imooc.bilibili.service.VideoService;
 import com.imooc.bilibili.support.UserSupport;
 import io.swagger.annotations.Api;
@@ -78,6 +80,57 @@ public class VideoController {
         } catch (Exception ignored) {
         }
         Map<String, Object> result = videoService.getVideoLikeCount(videoId, userId);
+        return new JsonResponse<>(result);
+    }
+
+
+    @PostMapping("/video/collection")
+    @ApiOperation(value = "收藏视频", httpMethod = "POST")
+    public JsonResponse<String> addVideoCollection(@RequestBody VideoCollection videoCollection) {
+        Long userId = userSupport.getCurrentUserId();
+        videoCollection.setUserId(userId);
+        videoService.addVideoCollection(videoCollection);
+        return JsonResponse.success();
+    }
+
+    @DeleteMapping("/cancel/video/collection")
+    @ApiOperation(value = "取消视频收藏", httpMethod = "DELETE")
+    public JsonResponse<String> deleteVideoCollection(@RequestParam Long videoId) {
+        Long userId = userSupport.getCurrentUserId();
+        videoService.deleteVideoCollection(videoId, userId);
+        return JsonResponse.success();
+    }
+
+    @GetMapping("/video/collection/count")
+    @ApiOperation(value = "查看视频收藏数量", httpMethod = "GET")
+    public JsonResponse<Map<String, Object>> getVideoCollectionCount(@RequestParam Long videoId) {
+        Long userId = null;
+        try {
+            userId = userSupport.getCurrentUserId();
+        } catch (Exception ignored) {
+        }
+        Map<String, Object> result = videoService.getVideoCollectionCount(videoId, userId);
+        return new JsonResponse<>(result);
+    }
+
+    @PostMapping("/video/coin")
+    @ApiOperation(value = "视频投币", httpMethod = "POST")
+    public JsonResponse<String> addVideoCoin(@RequestBody VideoCoin videoCoin) {
+        Long userId = userSupport.getCurrentUserId();
+        videoCoin.setUserId(userId);
+        videoService.addVideoCoin(videoCoin);
+        return JsonResponse.success();
+    }
+
+    @GetMapping("/video/coin/count")
+    @ApiOperation(value = "查看视频投币数量", httpMethod = "GET")
+    public JsonResponse<Map<String, Object>> getVideoCoinCount(@RequestParam Long videoId) {
+        Long userId = null;
+        try {
+            userId = userSupport.getCurrentUserId();
+        } catch (Exception ignored) {
+        }
+        Map<String, Object> result = videoService.getVideoCoinCount(videoId, userId);
         return new JsonResponse<>(result);
     }
 }

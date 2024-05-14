@@ -3,14 +3,10 @@ package com.imooc.bilibili.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.imooc.bilibili.domain.PageResult;
-import com.imooc.bilibili.domain.video.Video;
-import com.imooc.bilibili.domain.video.VideoLike;
-import com.imooc.bilibili.domain.video.VideoTag;
+import com.imooc.bilibili.domain.video.*;
 import com.imooc.bilibili.exception.ConditionException;
 import com.imooc.bilibili.mapper.VideoMapper;
-import com.imooc.bilibili.service.VideoLikeService;
-import com.imooc.bilibili.service.VideoService;
-import com.imooc.bilibili.service.VideoTagService;
+import com.imooc.bilibili.service.*;
 import com.imooc.bilibili.util.FastDFSUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,6 +28,15 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
     @Resource
     private VideoLikeService videoLikeService;
+
+    @Resource
+    private VideoCollectionService videoCollectionService;
+
+    @Resource
+    private VideoCoinService videoCoinService;
+
+    @Resource
+    private UserCoinService userCoinService;
 
     @Resource
     private FastDFSUtil fastDFSUtil;
@@ -108,6 +113,87 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
         Map<String, Object> result = new HashMap<>();
         result.put("count", videoLikeCount);
         result.put("like", like);
+        return result;
+    }
+
+    @Override
+    public void addVideoCollection(VideoCollection videoCollection) {
+        Long videoId = videoCollection.getVideoId();
+        Long groupId = videoCollection.getGroupId();
+        if (ObjectUtil.isNull(videoId) || ObjectUtil.isNull(groupId)) {
+            throw new ConditionException("参数异常:videoId||groupId为null");
+        }
+        Video video = videoMapper.selectById(videoId);
+        if (ObjectUtil.isNull(video)) {
+            throw new ConditionException("没有找到对应的该视频数据,videoId:" + videoId);
+        }
+
+        // 先删除原有的视频收藏,再添加视频收藏
+        videoCollectionService.deleteVideoCollection(videoId, videoCollection.getUserId());
+        videoCollection.setCreateTime(new Date());
+        videoCollectionService.addVideoCollection(videoCollection);
+    }
+
+    @Override
+    public void deleteVideoCollection(Long videoId, Long userId) {
+        videoCollectionService.deleteVideoCollection(videoId, userId);
+    }
+
+    @Override
+    public Map<String, Object> getVideoCollectionCount(Long videoId, Long userId) {
+        Long videoCollectionCount = videoCollectionService.getVideoCollectionCountByVideoId(videoId);
+        VideoCollection videoCollection = videoCollectionService.getVideoCollectionByVideoIdAndUserId(videoId, userId);
+        boolean collection = ObjectUtil.isNotNull(videoCollection);
+        Map<String, Object> result = new HashMap<>();
+        result.put("count", videoCollectionCount);
+        result.put("collection", collection);
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void addVideoCoin(VideoCoin videoCoin) {
+        Long videoId = videoCoin.getVideoId();
+        Integer amount = videoCoin.getAmount();
+        if (ObjectUtil.isNull(videoId) || ObjectUtil.isNull(amount)) {
+            throw new ConditionException("videoId||amount为空");
+        }
+        Integer userCoinAmount = userCoinService.getUserCoinAmountByUserId(videoCoin.getUserId());
+        if (ObjectUtil.isNull(userCoinAmount)) {
+            userCoinAmount = 0;
+            UserCoin userCoin = new UserCoin();
+            userCoin.setUserId(videoCoin.getUserId());
+            userCoin.setAmount(userCoinAmount);
+            userCoin.setCreateTime(new Date());
+            userCoin.setUpdateTime(new Date());
+            userCoinService.addUserCoin(userCoin);
+        }
+        if (amount > userCoinAmount) {
+            throw new ConditionException("硬币数量不足");
+        }
+        // 查询该用户对该视频投了多少个币
+        videoCoin.setUpdateTime(new Date());
+        VideoCoin dbVideoCoin = videoCoinService.getVideoCoinByVideoIdAndUserId(videoId, videoCoin.getUserId());
+        if (ObjectUtil.isNull(dbVideoCoin)) {
+            videoCoin.setCreateTime(new Date());
+            videoCoinService.addVideoCoin(videoCoin);
+        } else {
+            videoCoin.setId(dbVideoCoin.getId());
+            videoCoin.setAmount(amount + dbVideoCoin.getAmount());
+            videoCoinService.updateVideoCoinById(videoCoin);
+        }
+        // 更新用户硬币的总数
+        userCoinService.updateUserCoinAmountByUserId(videoCoin.getUserId(), (userCoinAmount - amount));
+    }
+
+    @Override
+    public Map<String, Object> getVideoCoinCount(Long videoId, Long userId) {
+        Long videoCoinAmount = videoCoinService.getVideoCoinAmountByVideoId(videoId);
+        VideoCoin videoCoin = videoCoinService.getVideoCoinByVideoIdAndUserId(videoId, userId);
+        boolean coin = ObjectUtil.isNotNull(videoCoin);
+        Map<String, Object> result = new HashMap<>();
+        result.put("amount", videoCoinAmount);
+        result.put("coin", coin);
         return result;
     }
 }
