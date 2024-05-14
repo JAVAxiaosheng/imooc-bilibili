@@ -5,6 +5,7 @@ import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.video.Video;
 import com.imooc.bilibili.domain.video.VideoCoin;
 import com.imooc.bilibili.domain.video.VideoCollection;
+import com.imooc.bilibili.domain.video.VideoComment;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -32,4 +33,8 @@ public interface VideoService extends IService<Video> {
     void addVideoCoin(VideoCoin videoCoin);
 
     Map<String, Object> getVideoCoinCount(Long videoId, Long userId);
+
+    void addVideoComment(VideoComment videoComment);
+
+    PageResult<VideoComment> pageListVideoComment(Integer pageSize, Integer pageNum, Long videoId);
 }

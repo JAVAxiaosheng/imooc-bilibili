@@ -3,6 +3,7 @@ package com.imooc.bilibili.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.imooc.bilibili.domain.PageResult;
+import com.imooc.bilibili.domain.UserInfo;
 import com.imooc.bilibili.domain.video.*;
 import com.imooc.bilibili.exception.ConditionException;
 import com.imooc.bilibili.mapper.VideoMapper;
@@ -16,6 +17,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -37,6 +39,12 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
     @Resource
     private UserCoinService userCoinService;
+
+    @Resource
+    private VideoCommentService videoCommentService;
+
+    @Resource
+    private UserInfoService userInfoService;
 
     @Resource
     private FastDFSUtil fastDFSUtil;
@@ -195,5 +203,61 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
         result.put("amount", videoCoinAmount);
         result.put("coin", coin);
         return result;
+    }
+
+    @Override
+    public void addVideoComment(VideoComment videoComment) {
+        Long videoId = videoComment.getVideoId();
+        if (ObjectUtil.isNull(videoId)) {
+            throw new ConditionException("参数异常:videoId为null");
+        }
+        Video video = videoMapper.selectById(videoId);
+        if (ObjectUtil.isNull(video)) {
+            throw new ConditionException("没有找到对应的该视频数据,videoId:" + videoId);
+        }
+        videoComment.setCreateTime(new Date());
+        videoComment.setUpdateTime(new Date());
+        videoCommentService.addVideoComment(videoComment);
+    }
+
+    @Override
+    public PageResult<VideoComment> pageListVideoComment(Integer pageSize, Integer pageNum, Long videoId) {
+        Video video = videoMapper.selectById(videoId);
+        if (ObjectUtil.isNull(video)) {
+            throw new ConditionException("没有找到对应的该视频数据,videoId:" + videoId);
+        }
+        Map<String, Object> params = new HashMap<>();
+        params.put("start", (pageNum - 1) * pageSize);
+        params.put("limit", pageSize);
+        params.put("videoId", videoId);
+        Integer total = videoCommentService.pageCountVideoComment(params);
+        List<VideoComment> list = new ArrayList<>();
+        if (total > 0) {
+            list = videoCommentService.pageListVideoComment(params);
+            // 批量查询二级评论
+            // 提取Id列表
+            List<Long> parentIdList = list.stream().map(VideoComment::getId).collect(Collectors.toList());
+            List<VideoComment> childCommentList = videoCommentService.batchGetVideoCommentByRootId(parentIdList);
+            // 批量查询用户信息
+            Set<Long> userIdList = list.stream().map(VideoComment::getUserId).collect(Collectors.toSet());
+            Set<Long> replyUserIdList = childCommentList.stream().map(VideoComment::getReplyUserId).collect(Collectors.toSet());
+            userIdList.addAll(replyUserIdList);
+            List<UserInfo> userInfoList = userInfoService.batchGetUserInfoByUserIds(userIdList);
+            Map<Long, UserInfo> userInfoMap = userInfoList.stream().collect(Collectors.toMap(UserInfo::getUserId, userInfo -> userInfo));
+            list.forEach(comment -> {
+                Long id = comment.getId();
+                List<VideoComment> childList = new ArrayList<>();
+                childCommentList.forEach(child -> {
+                    if (id.equals(child.getRootId())) {
+                        child.setUserInfo(userInfoMap.get(child.getUserId()));
+                        child.setReplyUserInfo(userInfoMap.get(child.getReplyUserId()));
+                        childList.add(child);
+                    }
+                });
+                comment.setChildList(childList);
+                comment.setUserInfo(userInfoMap.get(comment.getUserId()));
+            });
+        }
+        return new PageResult<>(total, list);
     }
 }

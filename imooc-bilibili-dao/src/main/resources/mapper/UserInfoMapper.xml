@@ -7,4 +7,13 @@
         FROM user_info
         WHERE id = #{id}
     </select>
+
+    <select id="batchGetUserInfoByUserIds" parameterType="java.util.Set" resultType="UserInfo">
+        SELECT *
+        FROM user_info
+        WHERE user_id IN
+        <foreach collection="userIdList" item="userId" open="(" close=")" separator=",">
+            #{userId}
+        </foreach>
+    </select>
 </mapper>

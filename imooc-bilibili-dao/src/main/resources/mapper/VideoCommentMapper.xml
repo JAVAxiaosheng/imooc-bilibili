@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imooc.bilibili.mapper.VideoCommentMapper">
+    <select id="pageCountVideoComment" parameterType="java.util.Map" resultType="java.lang.Integer">
+        SELECT count(1)
+        FROM t_video_comment
+        WHERE video_id = #{videoId}
+          AND root_id IS NULL
+    </select>
+
+    <select id="pageListVideoComment" parameterType="java.util.Map" resultType="VideoComment">
+        SELECT *
+        FROM t_video_comment
+        WHERE video_id = #{videoId}
+          AND root_id IS NULL
+        ORDER BY id DESC
+            LIMIT #{start}, #{limit}
+    </select>
+
+    <select id="batchGetVideoCommentByRootId" parameterType="java.util.List" resultType="VideoComment">
+        SELECT *
+        FROM t_video_comment
+        WHERE root_id IN
+        <foreach collection="parentIdList" item="rootId" open="(" separator="," close=")">
+            #{rootId}
+        </foreach>
+        ORDER BY id
+    </select>
+</mapper>

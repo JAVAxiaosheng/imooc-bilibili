@@ -5,6 +5,7 @@ import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.video.Video;
 import com.imooc.bilibili.domain.video.VideoCoin;
 import com.imooc.bilibili.domain.video.VideoCollection;
+import com.imooc.bilibili.domain.video.VideoComment;
 import com.imooc.bilibili.service.VideoService;
 import com.imooc.bilibili.support.UserSupport;
 import io.swagger.annotations.Api;
@@ -131,6 +132,26 @@ public class VideoController {
         } catch (Exception ignored) {
         }
         Map<String, Object> result = videoService.getVideoCoinCount(videoId, userId);
+        return new JsonResponse<>(result);
+    }
+
+    @PostMapping("/video/comment")
+    @ApiOperation(value = "视频评论", httpMethod = "POST")
+    public JsonResponse<String> addVideoComment(@RequestBody VideoComment videoComment) {
+        Long userId = userSupport.getCurrentUserId();
+        videoComment.setUserId(userId);
+        videoService.addVideoComment(videoComment);
+        return JsonResponse.success();
+    }
+
+    @GetMapping("/page/video/comment")
+    @ApiOperation(value = "分页查询视频评论", httpMethod = "GET")
+    public JsonResponse<PageResult<VideoComment>> pageListVideoComment(
+            @RequestParam("pageSize") Integer pageSize,
+            @RequestParam("pageNum") Integer pageNum,
+            @RequestParam("pageNum") Long videoId
+    ) {
+        PageResult<VideoComment> result = videoService.pageListVideoComment(pageSize, pageNum, videoId);
         return new JsonResponse<>(result);
     }
 }
