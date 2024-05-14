@@ -37,4 +37,6 @@ public interface VideoService extends IService<Video> {
     void addVideoComment(VideoComment videoComment);
 
     PageResult<VideoComment> pageListVideoComment(Integer pageSize, Integer pageNum, Long videoId);
+
+    Map<String, Object> getVideoDetail(Long videoId);
 }

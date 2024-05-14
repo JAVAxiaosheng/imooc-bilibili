@@ -154,4 +154,11 @@ public class VideoController {
         PageResult<VideoComment> result = videoService.pageListVideoComment(pageSize, pageNum, videoId);
         return new JsonResponse<>(result);
     }
+
+    @GetMapping("get/video/detail")
+    @ApiOperation(value = "查看视频详情", httpMethod = "GET")
+    public JsonResponse<Map<String, Object>> getVideoDetail(@RequestParam Long videoId) {
+        Map<String, Object> result = videoService.getVideoDetail(videoId);
+        return new JsonResponse<>(result);
+    }
 }

@@ -260,4 +260,15 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
         }
         return new PageResult<>(total, list);
     }
+
+    @Override
+    public Map<String, Object> getVideoDetail(Long videoId) {
+        Video video = videoMapper.selectById(videoId);
+        Long userId = video.getUserId();
+        UserInfo userInfo = userInfoService.getById(userId);
+        Map<String, Object> result = new HashMap<>();
+        result.put("video", video);
+        result.put("userInfo", userInfo);
+        return result;
+    }
 }
