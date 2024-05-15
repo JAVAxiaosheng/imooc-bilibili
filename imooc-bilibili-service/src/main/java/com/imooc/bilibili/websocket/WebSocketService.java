@@ -12,6 +12,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.common.message.Message;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.websocket.*;
@@ -131,5 +132,19 @@ public class WebSocketService {
             log.error("消息推送失败sendText:", e);
         }
 
+    }
+
+    // 当前在线人数统计,定时触发
+    @Scheduled(cron = " 0/5 * * * * ?")
+    private void noticeOnlineCount() {
+        for (Map.Entry<String, WebSocketService> entry : WEB_SOCKET_MAP.entrySet()) {
+            WebSocketService webSocketService = entry.getValue();
+            if (webSocketService.getSession().isOpen()) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("ONLINE_COUNT", ONLINE_COUNT.get());
+                jsonObject.put("msg", "当前在线人数为:" + ONLINE_COUNT.get());
+                webSocketService.sendMessage(jsonObject.toJSONString());
+            }
+        }
     }
 }

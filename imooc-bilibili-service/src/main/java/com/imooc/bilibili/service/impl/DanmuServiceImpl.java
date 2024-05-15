@@ -15,6 +15,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,8 @@ import java.util.Map;
 
 @Service
 public class DanmuServiceImpl extends ServiceImpl<DanmuMapper, Danmu> implements DanmuService {
+    private static final String DANMU_KEY = "dm-video-";
+
     @Resource
     private DanmuMapper danmuMapper;
 
@@ -40,15 +43,36 @@ public class DanmuServiceImpl extends ServiceImpl<DanmuMapper, Danmu> implements
     }
 
     @Override
-    public List<Danmu> getDanmus(Map<String, Date> params) {
-        Date startDate = params.get("startDate");
-        Date endDate = params.get("endDate");
-        if (ObjectUtil.isNull(startDate) || ObjectUtil.isNull(endDate)) {
-            throw new ConditionException("开始||结束时间为空");
+    public List<Danmu> getDanmus(Long videoId, String startTime, String endTime) throws Exception {
+        String key = DANMU_KEY + videoId;
+        String value = redisTemplate.opsForValue().get(key);
+        List<Danmu> list = new ArrayList<>();
+        if (!StrUtil.isEmptyOrUndefined(value)) {
+            // 查缓存
+            list = JSONObject.parseArray(value, Danmu.class);
+            if (!StrUtil.isEmptyOrUndefined(startTime) && !StrUtil.isEmptyOrUndefined(endTime)) {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                Date startDate = sdf.parse(startTime);
+                Date endDate = sdf.parse(endTime);
+                List<Danmu> childList = new ArrayList<>();
+                for (Danmu danmu : list) {
+                    Date createTime = danmu.getCreateTime();
+                    if (createTime.after(startDate) && createTime.before(endDate)) {
+                        childList.add(danmu);
+                    }
+                }
+                list = childList;
+            }
+        } else {
+            // 查数据库
+            LambdaQueryWrapper<Danmu> queryWrapper = new LambdaQueryWrapper<Danmu>()
+                    .eq(Danmu::getVideoId, videoId)
+                    .between((!StrUtil.isEmptyOrUndefined(startTime) && !StrUtil.isEmptyOrUndefined(endTime)),
+                            Danmu::getCreateTime, startTime, endTime);
+            list = danmuMapper.selectList(queryWrapper);
+            redisTemplate.opsForValue().set(key, JSONObject.toJSONString(list));
         }
-        LambdaQueryWrapper<Danmu> queryWrapper = new LambdaQueryWrapper<Danmu>()
-                .between(Danmu::getCreateTime, startDate, endDate);
-        return danmuMapper.selectList(queryWrapper);
+        return list;
     }
 
     @Override

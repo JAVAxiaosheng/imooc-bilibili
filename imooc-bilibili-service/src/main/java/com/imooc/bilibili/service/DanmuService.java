@@ -9,9 +9,10 @@ import java.util.Map;
 
 public interface DanmuService extends IService<Danmu> {
     void addDanmu(Danmu danmu);
+
     void asyncAddDanmu(Danmu danmu);
 
-    List<Danmu> getDanmus(Map<String, Date> params);
+    List<Danmu> getDanmus(Long videoId, String startTime, String endTime) throws Exception;
 
     void addDanmuToRedis(Danmu danmu);
 }
