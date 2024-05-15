@@ -17,7 +17,8 @@ spring:
 rocketmq:
   name:
     server:
-      address: 127.0.0.1:9876
+      address: 192.168.206.201:9876
+#      address: 127.0.0.1:9876
 fdfs:
   tracker-list: 192.168.206.201:22122
   so-timeout: 1000
