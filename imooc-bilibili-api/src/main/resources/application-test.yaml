@@ -25,3 +25,6 @@ fdfs:
   connect-timeout: 601
   http:
     storage-addr: http://192.168.206.201:8888/group1/
+
+elasticsearch:
+  url: 192.168.206.201:9200

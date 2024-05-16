@@ -6,6 +6,7 @@ import com.imooc.bilibili.domain.video.Video;
 import com.imooc.bilibili.domain.video.VideoCoin;
 import com.imooc.bilibili.domain.video.VideoCollection;
 import com.imooc.bilibili.domain.video.VideoComment;
+import com.imooc.bilibili.elasticsearch.ElasticsearchService;
 import com.imooc.bilibili.service.VideoService;
 import com.imooc.bilibili.support.UserSupport;
 import io.swagger.annotations.Api;
@@ -28,6 +29,9 @@ public class VideoController {
     @Resource
     private UserSupport userSupport;
 
+    @Resource
+    private ElasticsearchService elasticsearchService;
+
 
     @PostMapping("/add/video")
     @ApiOperation(value = "添加视频", httpMethod = "POST")
@@ -35,6 +39,8 @@ public class VideoController {
         Long userId = userSupport.getCurrentUserId();
         video.setUserId(userId);
         videoService.addVideo(video);
+        // 添加到ES中
+        elasticsearchService.addVideo(video);
         return JsonResponse.success();
     }
 
@@ -160,5 +166,12 @@ public class VideoController {
     public JsonResponse<Map<String, Object>> getVideoDetail(@RequestParam Long videoId) {
         Map<String, Object> result = videoService.getVideoDetail(videoId);
         return new JsonResponse<>(result);
+    }
+
+    @GetMapping("get/es/videos")
+    @ApiOperation(value = "查询视频信息到ES", httpMethod = "GET")
+    public JsonResponse<Video> getEsVideos(@RequestParam String keyword) {
+        Video video = elasticsearchService.getVideos(keyword);
+        return new JsonResponse<>(video);
     }
 }
