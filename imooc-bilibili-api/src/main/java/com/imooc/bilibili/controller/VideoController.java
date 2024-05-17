@@ -1,11 +1,9 @@
 package com.imooc.bilibili.controller;
 
+import cn.hutool.http.server.HttpServerRequest;
 import com.imooc.bilibili.domain.JsonResponse;
 import com.imooc.bilibili.domain.PageResult;
-import com.imooc.bilibili.domain.video.Video;
-import com.imooc.bilibili.domain.video.VideoCoin;
-import com.imooc.bilibili.domain.video.VideoCollection;
-import com.imooc.bilibili.domain.video.VideoComment;
+import com.imooc.bilibili.domain.video.*;
 import com.imooc.bilibili.elasticsearch.ElasticsearchService;
 import com.imooc.bilibili.service.VideoService;
 import com.imooc.bilibili.support.UserSupport;
@@ -173,5 +171,26 @@ public class VideoController {
     public JsonResponse<Video> getEsVideos(@RequestParam String keyword) {
         Video video = elasticsearchService.getVideos(keyword);
         return new JsonResponse<>(video);
+    }
+
+    @PostMapping("/add/video/view")
+    @ApiOperation(value = "添加视频观看记录", httpMethod = "POST")
+    public JsonResponse<String> addVideoView(@RequestBody VideoView videoView,
+                                             HttpServletRequest request) {
+        Long userId;
+        try {
+            userId = userSupport.getCurrentUserId();
+            videoView.setUserId(userId);
+        } catch (Exception ignore) {
+        }
+        videoService.addVideoView(videoView, request);
+        return JsonResponse.success();
+    }
+
+    @GetMapping("get/video/view/count")
+    @ApiOperation(value = "查询视频播放量", httpMethod = "GET")
+    public JsonResponse<Long> getVideoViewCount(@RequestParam Long videoId) {
+        Long count = videoService.getVideoViewCount(videoId);
+        return new JsonResponse<>(count);
     }
 }

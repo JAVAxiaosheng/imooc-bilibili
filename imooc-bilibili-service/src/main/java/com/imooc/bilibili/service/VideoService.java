@@ -1,11 +1,9 @@
 package com.imooc.bilibili.service;
 
+import cn.hutool.http.server.HttpServerRequest;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.imooc.bilibili.domain.PageResult;
-import com.imooc.bilibili.domain.video.Video;
-import com.imooc.bilibili.domain.video.VideoCoin;
-import com.imooc.bilibili.domain.video.VideoCollection;
-import com.imooc.bilibili.domain.video.VideoComment;
+import com.imooc.bilibili.domain.video.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,4 +37,8 @@ public interface VideoService extends IService<Video> {
     PageResult<VideoComment> pageListVideoComment(Integer pageSize, Integer pageNum, Long videoId);
 
     Map<String, Object> getVideoDetail(Long videoId);
+
+    void addVideoView(VideoView videoView, HttpServletRequest request);
+
+    Long getVideoViewCount(Long videoId);
 }

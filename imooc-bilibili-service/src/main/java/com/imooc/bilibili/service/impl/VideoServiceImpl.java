@@ -1,6 +1,7 @@
 package com.imooc.bilibili.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.http.server.HttpServerRequest;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.imooc.bilibili.domain.PageResult;
 import com.imooc.bilibili.domain.UserInfo;
@@ -9,6 +10,8 @@ import com.imooc.bilibili.exception.ConditionException;
 import com.imooc.bilibili.mapper.VideoMapper;
 import com.imooc.bilibili.service.*;
 import com.imooc.bilibili.util.FastDFSUtil;
+import com.imooc.bilibili.util.IpUtil;
+import eu.bitwalker.useragentutils.UserAgent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -42,6 +46,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
 
     @Resource
     private VideoCommentService videoCommentService;
+
+    @Resource
+    private VideoViewService videoViewService;
 
     @Resource
     private UserInfoService userInfoService;
@@ -270,5 +277,45 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
         result.put("video", video);
         result.put("userInfo", userInfo);
         return result;
+    }
+
+    @Override
+    public void addVideoView(VideoView videoView, HttpServletRequest request) {
+        Long videoId = videoView.getVideoId();
+        if (ObjectUtil.isNull(videoId)) {
+            throw new ConditionException("videoId为null");
+        }
+        Long userId = videoView.getUserId();
+
+        // 生成clientId
+        String agent = request.getHeader("User-Agent");
+        UserAgent userAgent = UserAgent.parseUserAgentString(agent);
+        String clientId = String.valueOf(userAgent.getId());
+        String ip = IpUtil.getIP(request);
+        Map<String, Object> params = new HashMap<>();
+        if (ObjectUtil.isNotNull(userId)) {
+            params.put("userId", userId);
+        } else {
+            params.put("ip", ip);
+            params.put("clientId", clientId);
+        }
+        Date now = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        params.put("today", sdf.format(now));
+        params.put("videoId", videoId);
+
+        // 添加观看记录
+        VideoView dbVideoView = videoViewService.getVideoView(params);
+        if (ObjectUtil.isNull(dbVideoView)) {
+            videoView.setIp(ip);
+            videoView.setClientId(clientId);
+            videoView.setCreateTime(new Date());
+            videoViewService.addVideoView(videoView);
+        }
+    }
+
+    @Override
+    public Long getVideoViewCount(Long videoId) {
+        return videoViewService.getVideoViewCount(videoId);
     }
 }

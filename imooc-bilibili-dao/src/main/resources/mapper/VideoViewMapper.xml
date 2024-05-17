@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imooc.bilibili.mapper.VideoViewMapper">
+    <select id="getVideoView" parameterType="java.util.Map" resultType="VideoView">
+        select * from t_video_view
+        where video_id = #{videoId}
+        <if test="userId==null and clientId!=null">
+            and client_id = #{clientId} and user_id is null
+        </if>
+        <if test="userId != null">
+            and user_id = #{userId}
+        </if>
+        <if test="ip != null and ip != ''">
+            and ip = #{ip}
+        </if>
+        <if test="today!=null and today != ''">
+            and DATE_FORMAT(createTime,'%Y-%m-%d') = #{today}
+        </if>
+    </select>
+</mapper>

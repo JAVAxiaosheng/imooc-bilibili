@@ -22,4 +22,4 @@ logging:
   level:
     dao: debug
     org:
-      mybatis: debug
+      mybatis-plus: debug
