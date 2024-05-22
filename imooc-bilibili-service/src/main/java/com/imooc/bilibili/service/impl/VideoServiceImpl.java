@@ -318,4 +318,9 @@ public class VideoServiceImpl extends ServiceImpl<VideoMapper, Video> implements
     public Long getVideoViewCount(Long videoId) {
         return videoViewService.getVideoViewCount(videoId);
     }
+
+    @Override
+    public List<Video> recommend(Long userId) {
+        return null;
+    }
 }

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -159,14 +160,14 @@ public class VideoController {
         return new JsonResponse<>(result);
     }
 
-    @GetMapping("get/video/detail")
+    @GetMapping("/get/video/detail")
     @ApiOperation(value = "查看视频详情", httpMethod = "GET")
     public JsonResponse<Map<String, Object>> getVideoDetail(@RequestParam Long videoId) {
         Map<String, Object> result = videoService.getVideoDetail(videoId);
         return new JsonResponse<>(result);
     }
 
-    @GetMapping("get/es/videos")
+    @GetMapping("/get/es/videos")
     @ApiOperation(value = "查询视频信息到ES", httpMethod = "GET")
     public JsonResponse<Video> getEsVideos(@RequestParam String keyword) {
         Video video = elasticsearchService.getVideos(keyword);
@@ -187,10 +188,19 @@ public class VideoController {
         return JsonResponse.success();
     }
 
-    @GetMapping("get/video/view/count")
+    @GetMapping("/get/video/view/count")
     @ApiOperation(value = "查询视频播放量", httpMethod = "GET")
     public JsonResponse<Long> getVideoViewCount(@RequestParam Long videoId) {
         Long count = videoService.getVideoViewCount(videoId);
         return new JsonResponse<>(count);
     }
+
+    @GetMapping("/recommendations")
+    @ApiOperation(value = "视频内容推荐", httpMethod = "GET")
+    public JsonResponse<List<Video>> recommend() {
+        Long userId = userSupport.getCurrentUserId();
+        List<Video> list = videoService.recommend(userId);
+        return new JsonResponse<>(list);
+    }
+
 }

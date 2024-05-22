@@ -7,6 +7,7 @@ import com.imooc.bilibili.domain.video.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 import java.util.Map;
 
 public interface VideoService extends IService<Video> {
@@ -41,4 +42,6 @@ public interface VideoService extends IService<Video> {
     void addVideoView(VideoView videoView, HttpServletRequest request);
 
     Long getVideoViewCount(Long videoId);
+
+    List<Video> recommend(Long userId);
 }
